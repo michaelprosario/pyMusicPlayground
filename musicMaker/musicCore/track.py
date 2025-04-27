@@ -1,7 +1,7 @@
 from typing import List
-from chord import Chord
-from musicalEvent import ChordEvent, MusicalEvent, NoteEvent
-from note import Duration, Note
+from musicCore.chord import Chord
+from musicCore.musicalEvent import ChordEvent, MusicalEvent, NoteEvent
+from musicCore.note import Duration, Note
 
 class Track:
     def __init__(self, name: str, instrument: int = 0):

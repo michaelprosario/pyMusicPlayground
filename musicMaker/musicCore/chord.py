@@ -1,6 +1,6 @@
 from typing import List
-from note import Note
-from chordType import ChordType
+from musicCore.note import Note
+from musicCore.chordType import ChordType
 
 class Chord:
     def __init__(self, root_note: Note, chord_type: ChordType):

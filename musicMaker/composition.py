@@ -1,8 +1,8 @@
 
-from musicalEvent import ChordEvent, NoteEvent
-from chordType import ChordType
-from note import Duration, Note
-from track import Track
+from musicCore.musicalEvent import ChordEvent, NoteEvent
+from musicCore.chordType import ChordType
+from musicCore.note import Duration, Note
+from musicCore.track import Track
 from typing import List
 import mido
 

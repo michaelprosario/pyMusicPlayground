@@ -1,11 +1,11 @@
 from enum import Enum
 
 class Duration(Enum):
-    WHOLE = 64      # 64 sixteenth notes
-    HALF = 32       # 32 sixteenth notes
-    QUARTER = 16    # 16 sixteenth notes
-    EIGHTH = 8      # 8 sixteenth notes
-    SIXTEENTH = 4   # 4 sixteenth notes (smallest unit in our model)
+    WHOLE = 16      # 64 sixteenth notes
+    HALF = 8       # 32 sixteenth notes
+    QUARTER = 4    # 16 sixteenth notes
+    EIGHTH = 2      # 8 sixteenth notes
+    SIXTEENTH = 1   # 4 sixteenth notes (smallest unit in our model)
 
 class Note:
     def __init__(self, pitch: int, velocity: int = 64):

@@ -1,5 +1,5 @@
-from chord import Chord
-from note import Duration, Note
+from musicCore.chord import Chord
+from musicCore.note import Duration, Note
 
 class MusicalEvent:
     def __init__(self, start_time: int, duration: Duration):
