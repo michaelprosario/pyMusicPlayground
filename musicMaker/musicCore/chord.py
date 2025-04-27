@@ -20,6 +20,11 @@ class Chord:
         elif self.chord_type == ChordType.MINOR:
             notes.append(Note(root_pitch + 3, velocity))  # Minor third
             notes.append(Note(root_pitch + 7, velocity))  # Perfect fifth
-        # Add other chord types here
+        elif self.chord_type == ChordType.DIMINISHED:
+            notes.append(Note(root_pitch + 3, velocity))
+            notes.append(Note(root_pitch + 6, velocity))
+        elif self.chord_type == ChordType.AUGMENTED:
+            notes.append(Note(root_pitch + 4, velocity))
+            notes.append(Note(root_pitch + 8, velocity))
         
         return notes
