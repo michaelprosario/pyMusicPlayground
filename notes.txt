@@ -1,0 +1,4 @@
+
+Given:
+Input pattern:
+C:4 | F:4 | G:4 | Dm:2 G:2
