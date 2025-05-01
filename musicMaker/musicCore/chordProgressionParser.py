@@ -5,7 +5,7 @@ from musicCore.note import Note
 from musicCore.chordType import ChordType
 
 class ChordChange:
-    def __init__(self, chord: Chord, duration: float):
+    def __init__(self, chord: Chord, duration: int):
         self.chord = chord
         self.duration = duration
 
@@ -38,6 +38,7 @@ class ChordProgressionParser:
         return ChordChange(chord, duration) 
     
     def parseMeasure(self, measure: str) -> list:
+        measure = measure.strip()
         parts = measure.split(' ')
         response = []
         for part in parts:
@@ -49,14 +50,13 @@ class ChordProgressionParser:
 
         chord1 = chord.strip()
 
-        # check if the chord ends in 'M' or 'm'
         if chord1.endswith('m'):
             chord1 = chord1[:-1]
             chordType = ChordType.MINOR
         else:
             chordType = ChordType.MAJOR
                 
-        chord1 = chord1 + '2'
+        chord1 = chord1 + '4'
 
         # create note from chord
         rootNote = Note.from_note_name(chord1)
