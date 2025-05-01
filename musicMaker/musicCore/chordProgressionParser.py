@@ -17,7 +17,14 @@ class ChordChange:
 
 class ChordProgressionParser:
     def parseProgression(self, progression: str) -> list:
-        return []
+        parts = progression.split('|')
+        response = []
+        for part in parts:
+            chords = self.parseMeasure(part)
+            for chord in chords:
+                response.append(chord)
+                
+        return response
     
     def parseChordChange(self, chordChange: str) -> ChordChange:
         parts = chordChange.split(':')
@@ -29,6 +36,14 @@ class ChordProgressionParser:
             duration = 1.0
 
         return ChordChange(chord, duration) 
+    
+    def parseMeasure(self, measure: str) -> list:
+        parts = measure.split(' ')
+        response = []
+        for part in parts:
+            chordChange = self.parseChordChange(part)
+            response.append(chordChange)
+        return response
     
     def parseChord(self, chord: str) -> Chord:
 

@@ -73,7 +73,7 @@ class TestCalculations(unittest.TestCase):
         self.assertEqual(chordChange.chord.chord_type, ChordType.MINOR)
         self.assertEqual(chordChange.duration, 4.0)
 
-    def test_parseChordAndLength__onCSharpMinor2(self):
+    def test_parseChordChange(self):
         # arrange
         parser = ChordProgressionParser()
 
@@ -85,11 +85,37 @@ class TestCalculations(unittest.TestCase):
         self.assertEqual(chordChange.chord.chord_type, ChordType.MINOR)
         self.assertEqual(chordChange.duration, 2.0)
 
+    def test_parseMeasure(self):
+        # arrange
+        parser = ChordProgressionParser()
+
+        # act
+        chordChanges = parser.parseMeasure('C:2 Am:2')
+
+        print(chordChanges) 
+
+        # assert
+        self.assertEqual(len(chordChanges), 2)
+
+    def test_parseMeasure(self):
+        # arrange
+        parser = ChordProgressionParser()
+
+        # act
+        chordChanges = parser.parseProgression('C:2 Am:2|Dm:2 G:2')        
+
+        # assert
+        self.assertEqual(len(chordChanges), 4)
+
 
 
 if __name__ == '__main__':
-    unittest.main()
-    #parser = ChordProgressionParser()
+    #unittest.main()
+
+
+    parser = ChordProgressionParser()
 
     # act
-    #chordChange = parser.parseChordChange('C#m:4')
+    chordChanges = parser.parseProgression('C:2 Am:2|Dm:2 G:2')     
+    print(chordChanges) 
+
