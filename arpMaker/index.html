@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arpeggio Maker with Tone.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --accent-color: #e74c3c;
+            --border-color: #ddd;
+            --bg-color: #f5f5f5;
+            --cell-bg: #f9f9f9;
+            --cell-active: #3498db;
+            --cell-playing: #2ecc71;
+            --text-color: #333;
+            --header-bg: #f2f2f2;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .panel {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        select, button, input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #fff;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+            min-width: 80px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        button.active {
+            background-color: var(--accent-color);
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .grid-container {
+            overflow-x: auto;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            text-align: center;
+            height: 30px;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            position: sticky;
+            top: 0;
+            padding: 8px;
+        }
+
+        td.note-cell {
+            width: 40px;
+            height: 30px;
+            background-color: var(--cell-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        td.note-label {
+            width: 80px;
+            background-color: var(--header-bg);
+            font-weight: bold;
+            position: sticky;
+            left: 0;
+        }
+
+        td.note-cell.active {
+            background-color: var(--cell-active);
+        }
+
+        td.note-cell.playing {
+            background-color: var(--cell-playing);
+        }
+
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .preset-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            min-width: 150px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .control-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Arpeggio Maker</h1>
+    
+    <div class="panel">
+        <div class="control-row">
+            <div class="control-group">
+                <label for="root-note">Root Note:</label>
+                <select id="root-note">
+                    <option value="C">C</option>
+                    <option value="C#">C#/Db</option>
+                    <option value="D">D</option>
+                    <option value="D#">D#/Eb</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F#/Gb</option>
+                    <option value="G">G</option>
+                    <option value="G#">G#/Ab</option>
+                    <option value="A">A</option>
+                    <option value="A#">A#/Bb</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="chord-type">Chord Type:</label>
+                <select id="chord-type">
+                    <option value="major">Major</option>
+                    <option value="minor">Minor</option>
+                    <option value="diminished">Diminished</option>
+                    <option value="augmented">Augmented</option>
+                    <option value="major7">Major 7</option>
+                    <option value="minor7">Minor 7</option>
+                    <option value="dominant7">Dominant 7</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="time-signature">Time Signature:</label>
+                <select id="time-signature">
+                    <option value="3/4">3/4</option>
+                    <option value="4/4" selected>4/4</option>
+                    <option value="6/8">6/8</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="tempo">Tempo:</label>
+                <input type="number" id="tempo" min="40" max="240" value="120">
+                <span>BPM</span>
+            </div>
+        </div>
+
+        <div class="control-row">
+            <div class="control-group">
+                <button id="play-button">▶ Play</button>
+                <button id="stop-button">■ Stop</button>
+                <button id="clear-button">Clear Grid</button>
+                <span id="start-audio" style="display: none;">
+                    <button id="start-audio-button">Start Audio Engine</button>
+                    <span class="status">(click to enable audio)</span>
+                </span>
+            </div>
+            
+            <div class="control-group">
+                <label for="instrument">Instrument:</label>
+                <select id="instrument">
+                    <option value="piano">Piano</option>
+                    <option value="synth">Synth</option>
+                    <option value="marimba">Marimba</option>
+                    <option value="bass">Bass</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="preset-controls">
+            <input type="text" id="preset-name" placeholder="Preset name...">
+            <button id="save-preset">Save Pattern</button>
+            <select id="preset-list">
+                <option value="">Load saved pattern...</option>
+            </select>
+            <button id="load-preset">Load</button>
+            <button id="delete-preset">Delete</button>
+        </div>
+    </div>
+    
+    <div class="panel grid-container">
+        <table id="arpeggio-grid">
+            <!-- Grid will be generated by JavaScript -->
+        </table>
+        <div class="status" id="status">Click any cell to create your arpeggio pattern</div>
+    </div>
+    
+    <script>
+/**
+ * Main application class for the Arpeggio Maker
+ */
+class ArpeggioMaker {
+    constructor() {
+        // Core properties
+        this.notes = ['5th', '3rd', '2nd', 'Root', '5th (octave)', '3rd (octave)', '2nd (octave)', 'Root (octave)'];
+        this.timeSignature = '4/4';
+        this.gridColumns = 16; // Default for 4/4
+        this.isPlaying = false;
+        this.currentColumn = -1;
+        this.tempo = 120;
+        this.rootNote = 'C';
+        this.octave = 4; // Middle C octave
+        this.chordType = 'major';
+        
+        // Components
+        this.audioEngine = new AudioEngine();
+        this.grid = new ArpeggioGrid(this);
+        this.presetManager = new PresetManager(this);
+        
+        // Initialize the application
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.grid.createGrid();
+        this.audioEngine.init();
+        this.presetManager.loadPresetsFromStorage();
+        
+        // Check if AudioContext requires user interaction
+        if (Tone.context.state !== 'running') {
+            document.getElementById('start-audio').style.display = 'inline-block';
+            document.getElementById('play-button').disabled = true;
+        }
+    }
+    
+    setupEventListeners() {
+        // Time signature change
+        document.getElementById('time-signature').addEventListener('change', (e) => {
+            this.timeSignature = e.target.value;
+            this.updateGridColumns();
+            this.grid.createGrid();
+        });
+        
+        // Tempo change
+        document.getElementById('tempo').addEventListener('change', (e) => {
+            this.tempo = parseInt(e.target.value);
+            if (this.isPlaying) {
+                this.stopPlayback();
+                this.startPlayback();
+            }
+        });
+        
+        // Root note change
+        document.getElementById('root-note').addEventListener('change', (e) => {
+            this.rootNote = e.target.value;
+        });
+        
+        // Chord type change
+        document.getElementById('chord-type').addEventListener('change', (e) => {
+            this.chordType = e.target.value;
+        });
+        
+        // Instrument change
+        document.getElementById('instrument').addEventListener('change', (e) => {
+            this.audioEngine.changeInstrument(e.target.value);
+        });
+        
+        // Play button
+        document.getElementById('play-button').addEventListener('click', () => {
+            if (!this.isPlaying) {
+                this.startPlayback();
+            }
+        });
+        
+        // Stop button
+        document.getElementById('stop-button').addEventListener('click', () => {
+            if (this.isPlaying) {
+                this.stopPlayback();
+            }
+        });
+        
+        // Clear button
+        document.getElementById('clear-button').addEventListener('click', () => {
+            this.grid.clearGrid();
+        });
+        
+        // Start audio context
+        document.getElementById('start-audio-button').addEventListener('click', () => {
+            this.audioEngine.startAudioContext();
+            document.getElementById('start-audio').style.display = 'none';
+            document.getElementById('play-button').disabled = false;
+            this.updateStatus('Audio engine started');
+        });
+        
+        // Preset controls
+        document.getElementById('save-preset').addEventListener('click', () => {
+            this.presetManager.saveCurrentPattern();
+        });
+        
+        document.getElementById('load-preset').addEventListener('click', () => {
+            this.presetManager.loadSelectedPattern();
+        });
+        
+        document.getElementById('delete-preset').addEventListener('click', () => {
+            this.presetManager.deleteSelectedPattern();
+        });
+    }
+    
+    updateStatus(message) {
+        document.getElementById('status').textContent = message;
+    }
+    
+    updateGridColumns() {
+        if (this.timeSignature === '4/4') {
+            this.gridColumns = 16; // 16 16th notes
+        } else if (this.timeSignature === '3/4') {
+            this.gridColumns = 12; // 12 16th notes
+        } else if (this.timeSignature === '6/8') {
+            this.gridColumns = 12; // 12 8th-note triplets
+        }
+    }
+    
+    startPlayback() {
+        this.isPlaying = true;
+        this.currentColumn = -1;
+        document.getElementById('play-button').classList.add('active');
+        
+        // Schedule pattern using Tone.js
+        this.audioEngine.schedulePattern(this);
+    }
+    
+    stopPlayback() {
+        this.isPlaying = false;
+        document.getElementById('play-button').classList.remove('active');
+        
+        // Stop Tone.js Transport
+        this.audioEngine.stopPlayback();
+        
+        // Clear playing highlights
+        this.grid.clearPlayingHighlights();
+        this.currentColumn = -1;
+    }
+    
+    getActiveNotesInColumn(column) {
+        const activeNotes = [];
+        document.querySelectorAll(`.note-cell[data-column="${column}"].active`).forEach(cell => {
+            activeNotes.push(cell.dataset.note);
+        });
+        return activeNotes;
+    }
+    
+    highlightColumn(column) {
+        this.grid.clearPlayingHighlights();
+        this.currentColumn = column;
+        document.querySelectorAll(`.note-cell[data-column="${column}"]`).forEach(cell => {
+            cell.classList.add('playing');
+        });
+    }
+}
+
+/**
+ * Class for handling the arpeggio grid UI and interactions
+ */
+class ArpeggioGrid {
+    constructor(app) {
+        this.app = app;
+    }
+    
+    createGrid() {
+        const grid = document.getElementById('arpeggio-grid');
+        grid.innerHTML = '';
+        
+        // Create header row with beat numbers
+        const headerRow = document.createElement('tr');
+        const cornerCell = document.createElement('th');
+        headerRow.appendChild(cornerCell);
+        
+        for (let i = 0; i < this.app.gridColumns; i++) {
+            const headerCell = document.createElement('th');
+            // Calculate beat number based on time signature
+            let beatNumber;
+            if (this.app.timeSignature === '4/4') {
+                beatNumber = Math.floor(i / 4) + 1;
+                const subdivision = (i % 4) + 1;
+                headerCell.textContent = `${beatNumber}.${subdivision}`;
+            } else if (this.app.timeSignature === '3/4') {
+                beatNumber = Math.floor(i / 4) + 1;
+                const subdivision = (i % 4) + 1;
+                headerCell.textContent = `${beatNumber}.${subdivision}`;
+            } else if (this.app.timeSignature === '6/8') {
+                beatNumber = Math.floor(i / 3) + 1;
+                const subdivision = (i % 3) + 1;
+                headerCell.textContent = `${beatNumber}.${subdivision}`;
+            }
+            headerRow.appendChild(headerCell);
+        }
+        grid.appendChild(headerRow);
+        
+        // Create rows for each note
+        this.app.notes.forEach((note) => {
+            const row = document.createElement('tr');
+            
+            // Create note label cell
+            const labelCell = document.createElement('td');
+            labelCell.className = 'note-label';
+            labelCell.textContent = note;
+            row.appendChild(labelCell);
+            
+            // Create grid cells for this row
+            for (let i = 0; i < this.app.gridColumns; i++) {
+                const cell = document.createElement('td');
+                cell.className = 'note-cell';
+                cell.dataset.note = note;
+                cell.dataset.column = i;
+                
+                // Add click event to toggle cell state
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('active');
+                });
+                
+                row.appendChild(cell);
+            }
+            
+            grid.appendChild(row);
+        });
+    }
+    
+    clearGrid() {
+        document.querySelectorAll('.note-cell.active').forEach(cell => {
+            cell.classList.remove('active');
+        });
+        this.app.updateStatus('Grid cleared');
+    }
+    
+    clearPlayingHighlights() {
+        document.querySelectorAll('.note-cell.playing').forEach(cell => {
+            cell.classList.remove('playing');
+        });
+    }
+    
+    setGridFromPattern(pattern) {
+        // Clear existing pattern
+        this.clearGrid();
+        
+        // Set new pattern
+        if (pattern && pattern.activeCells) {
+            pattern.activeCells.forEach(cell => {
+                const cellElement = document.querySelector(
+                    `.note-cell[data-note="${cell.note}"][data-column="${cell.column}"]`
+                );
+                if (cellElement) {
+                    cellElement.classList.add('active');
+                }
+            });
+        }
+    }
+    
+    getCurrentPattern() {
+        const activeCells = [];
+        document.querySelectorAll('.note-cell.active').forEach(cell => {
+            activeCells.push({
+                note: cell.dataset.note,
+                column: parseInt(cell.dataset.column)
+            });
+        });
+        
+        return {
+            rootNote: this.app.rootNote,
+            chordType: this.app.chordType,
+            timeSignature: this.app.timeSignature,
+            tempo: this.app.tempo,
+            activeCells: activeCells
+        };
+    }
+}
+
+/**
+ * Class for handling audio generation and playback with Tone.js
+ */
+class AudioEngine {
+    constructor() {
+        this.synth = null;
+        this.currentInstrument = 'piano';
+        this.notesPlaying = new Set();
+    }
+    
+    init() {
+        // Create the instrument
+        this.changeInstrument(this.currentInstrument);
+        
+        // Add effects
+        this.reverb = new Tone.Reverb(1.5).toDestination();
+        this.reverb.wet.value = 0.3;
+        
+        // Connect instrument to effects
+        this.synth.connect(this.reverb);
+    }
+    
+    startAudioContext() {
+        Tone.start();
+    }
+    
+    changeInstrument(instrumentType) {
+        // Dispose of previous synth if it exists
+        if (this.synth) {
+            this.synth.dispose();
+        }
+        
+        this.currentInstrument = instrumentType;
+        
+        // Create new instrument based on selection
+        switch (instrumentType) {
+            case 'piano':
+                this.synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: {
+                        type: 'triangle'
+                    },
+                    envelope: {
+                        attack: 0.02,
+                        decay: 0.1,
+                        sustain: 0.3,
+                        release: 1
+                    }
+                });
+                break;
+            case 'synth':
+                this.synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: {
+                        type: 'sawtooth'
+                    },
+                    envelope: {
+                        attack: 0.005,
+                        decay: 0.1,
+                        sustain: 0.3,
+                        release: 2
+                    }
+                });
+                break;
+            case 'marimba':
+                this.synth = new Tone.PolySynth(Tone.FMSynth, {
+                    harmonicity: 3.01,
+                    modulationIndex: 10,
+                    oscillator: {
+                        type: 'sine'
+                    },
+                    envelope: {
+                        attack: 0.01,
+                        decay: 0.2,
+                        sustain: 0.1,
+                        release: 0.5
+                    },
+                    modulation: {
+                        type: 'triangle'
+                    },
+                    modulationEnvelope: {
+                        attack: 0.5,
+                        decay: 0.1,
+                        sustain: 0.2,
+                        release: 0.1
+                    }
+                });
+                break;
+            case 'bass':
+                this.synth = new Tone.PolySynth(Tone.MonoSynth, {
+                    oscillator: {
+                        type: 'fmsquare5',
+                        width: 0.5
+                    },
+                    envelope: {
+                        attack: 0.05,
+                        decay: 0.3,
+                        sustain: 0.6,
+                        release: 0.5
+                    },
+                    filterEnvelope: {
+                        attack: 0.06,
+                        decay: 0.2,
+                        sustain: 0.5,
+                        release: 2,
+                        baseFrequency: 200,
+                        octaves: 2
+                    }
+                });
+                break;
+            default:
+                this.synth = new Tone.PolySynth();
+        }
+        
+        // Connect to effects chain if it exists
+        if (this.reverb) {
+            this.synth.connect(this.reverb);
+        } else {
+            this.synth.toDestination();
+        }
+    }
+    
+    getMidiNote(noteType, rootNote, chordType) {
+        const rootNoteMap = {
+            'C': 60, 'C#': 61, 'D': 62, 'D#': 63, 'E': 64,
+            'F': 65, 'F#': 66, 'G': 67, 'G#': 68, 'A': 69,
+            'A#': 70, 'B': 71
+        };
+        
+        const chordIntervals = {
+            'major': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 4,
+                '5th': 7,
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 16,
+                '5th (octave)': 19
+            },
+            'minor': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 3, // Minor third
+                '5th': 7,
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 15,
+                '5th (octave)': 19
+            },
+            'diminished': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 3,
+                '5th': 6, // Diminished fifth
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 15,
+                '5th (octave)': 18
+            },
+            'augmented': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 4,
+                '5th': 8, // Augmented fifth
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 16,
+                '5th (octave)': 20
+            },
+            'major7': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 4,
+                '5th': 7,
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 16,
+                '5th (octave)': 19
+            },
+            'minor7': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 3,
+                '5th': 7,
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 15,
+                '5th (octave)': 19
+            },
+            'dominant7': {
+                'Root': 0,
+                '2nd': 2,
+                '3rd': 4,
+                '5th': 7,
+                'Root (octave)': 12,
+                '2nd (octave)': 14,
+                '3rd (octave)': 16,
+                '5th (octave)': 19
+            }
+        };
+        
+        const baseNote = rootNoteMap[rootNote] || 60;
+        const interval = chordIntervals[chordType][noteType] || 0;
+        
+        return this.midiToNote(baseNote + interval);
+    }
+    
+    midiToNote(midiNumber) {
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const octave = Math.floor(midiNumber / 12) - 1;
+        const noteName = noteNames[midiNumber % 12];
+        return `${noteName}${octave}`;
+    }
+    
+    schedulePattern(app) {
+        // Clear any previous pattern
+        Tone.Transport.cancel(0);
+        this.notesPlaying.clear();
+        
+        // Set tempo
+        Tone.Transport.bpm.value = app.tempo;
+        
+        // Determine the subdivision based on time signature
+        let subdivision = '16n'; // 16th notes for 4/4 and 3/4
+        if (app.timeSignature === '6/8') {
+            subdivision = '8t'; // 8th note triplets for 6/8
+        }
+        
+        // Schedule a repeating pattern
+        const repeat = (time) => {
+            // Get current position (column)
+            let position = Tone.Transport.position;
+            let [bars, beats, sixteenths] = position.split(':').map(Number);
+            
+            // Calculate current column based on time signature
+            let column;
+            if (app.timeSignature === '4/4') {
+                column = (beats - 1) * 4 + Math.floor(sixteenths * 4);
+                column = column % 16;
+            } else if (app.timeSignature === '3/4') {
+                column = (beats - 1) * 4 + Math.floor(sixteenths * 4);
+                column = column % 12;
+            } else if (app.timeSignature === '6/8') {
+                column = (beats - 1) * 2 + Math.floor(sixteenths * 2);
+                column = column % 12;
+            }
+            
+            // Highlight current column
+            Tone.Draw.schedule(() => {
+                app.highlightColumn(column);
+            }, time);
+            
+            // Get active notes in this column
+            const activeNotes = app.getActiveNotesInColumn(column);
+            
+            // Release notes that were playing but are not active now
+            this.notesPlaying.forEach(note => {
+                if (!activeNotes.includes(note)) {
+                    this.synth.triggerRelease(this.getMidiNote(note, app.rootNote, app.chordType), time);
+                    this.notesPlaying.delete(note);
+                }
+            });
+            
+            // Play active notes
+            activeNotes.forEach(note => {
+                const toneNote = this.getMidiNote(note, app.rootNote, app.chordType);
+                
+                // Only trigger attack if the note wasn't already playing
+                if (!this.notesPlaying.has(note)) {
+                    this.synth.triggerAttack(toneNote, time);
+                    this.notesPlaying.add(note);
+                }
+            });
+        };
+        
+        // Schedule the repeat at the appropriate subdivision
+        Tone.Transport.scheduleRepeat(repeat, subdivision);
+        
+        // Start playback
+        Tone.Transport.start();
+    }
+    
+    stopPlayback() {
+        Tone.Transport.stop();
+        this.synth.releaseAll();
+        this.notesPlaying.clear();
+    }
+}
+
+/**
+ * Class for managing saving and loading of patterns
+ */
+class PresetManager {
+    constructor(app) {
+        this.app = app;
+        this.presets = {};
+    }
+    
+    loadPresetsFromStorage() {
+        // Load saved presets from localStorage
+        const savedPresets = localStorage.getItem('arpeggioPresets');
+        if (savedPresets) {
+            this.presets = JSON.parse(savedPresets);
+            this.updatePresetList();
+        }
+    }
+    
+    updatePresetList() {
+        const presetList = document.getElementById('preset-list');
+        
+        // Clear existing options except the default one
+        while (presetList.options.length > 1) {
+            presetList.remove(1);
+        }
+        
+        // Add presets to the list
+        for (const name in this.presets) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            presetList.appendChild(option);
+        }
+    }
+    
+    saveCurrentPattern() {
+        const name = document.getElementById('preset-name').value.trim();
+        if (!name) {
+            this.app.updateStatus('Please enter a preset name');
+            return;
+        }
+        
+        // Get current pattern
+        const pattern = this.app.grid.getCurrentPattern();
+        
+        // Save pattern
+        this.presets[name] = pattern;
+        localStorage.setItem('arpeggioPresets', JSON.stringify(this.presets));
+        
+        // Update UI
+        this.updatePresetList();
+        document.getElementById('preset-name').value = '';
+        this.app.updateStatus(`Pattern saved as "${name}"`);
+    }
+    
+    loadSelectedPattern() {
+        const presetList = document.getElementById('preset-list');
+        const selectedPreset = presetList.value;
+        
+        if (!selectedPreset) {
+            this.app.updateStatus('Please select a pattern to load');
+            return;
+        }
+        
+        const pattern = this.presets[selectedPreset];
+        if (pattern) {
+            // Update app settings
+            document.getElementById('root-note').value = pattern.rootNote;
+            this.app.rootNote = pattern.rootNote;
+            
+            document.getElementById('chord-type').value = pattern.chordType;
+            this.app.chordType = pattern.chordType;
+            
+            document.getElementById('time-signature').value = pattern.timeSignature;
+            this.app.timeSignature = pattern.timeSignature;
+            this.app.updateGridColumns();
+            
+            document.getElementById('tempo').value = pattern.tempo;
+            this.app.tempo = pattern.tempo;
+            
+            // Apply pattern to grid
+            this.app.grid.createGrid();
+            this.app.grid.setGridFromPattern(pattern);
+            
+            this.app.updateStatus(`Loaded pattern "${selectedPreset}"`);
+        }
+    }
+    
+    deleteSelectedPattern() {
+        const presetList = document.getElementById('preset-list');
+        const selectedPreset = presetList.value;
+        
+        if (!selectedPreset) {
+            this.app.updateStatus('Please select a pattern to delete');
+            return;
+        }
+        
+        // Delete the preset
+        delete this.presets[selectedPreset];
+        localStorage.setItem('arpeggioPresets', JSON.stringify(this.presets));
+        
+        // Update UI
+        this.updatePresetList();
+        presetList.value = '';
+        this.app.updateStatus(`Pattern "${selectedPreset}" deleted`);
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const app = new ArpeggioMaker();
+});
+    </script>
+</body>
+</html>
