@@ -1,0 +1,155 @@
+\version "2.24" 
+\include "lilypond-book-preamble.ly"
+    
+color = #(define-music-function (parser location color) (string?) #{
+        \once \override NoteHead.color = #(x11-color color)
+        \once \override Stem.color = #(x11-color color)
+        \once \override Rest.color = #(x11-color color)
+        \once \override Beam.color = #(x11-color color)
+     #})
+    
+\header { 
+ title = "Ode to Joy (An die Freude)"   
+  
+  } 
+ 
+\score  { 
+ 
+      << \new Staff  = xzzwzzbfbweaxdc { \clef "treble" 
+             \key c \major 
+             \time 4/4
+             e' 4  
+             e' 4  
+             f' 4  
+             g' 4  
+             \bar "|"  %{ end measure 1 %} 
+             g' 4  
+             f' 4  
+             e' 4  
+             d' 4  
+             \bar "|"  %{ end measure 2 %} 
+             c' 4  
+             c' 4  
+             d' 4  
+             e' 4  
+             \bar "|"  %{ end measure 3 %} 
+             e' 4.  
+             d' 8  
+             d' 2  
+             \bar "|"  %{ end measure 4 %} 
+             e' 4  
+             e' 4  
+             f' 4  
+             g' 4  
+             \bar "|"  %{ end measure 5 %} 
+             g' 4  
+             f' 4  
+             e' 4  
+             d' 4  
+             \bar "|"  %{ end measure 6 %} 
+             c' 4  
+             c' 4  
+             d' 4  
+             e' 4  
+             \bar "|"  %{ end measure 7 %} 
+             d' 4.  
+             c' 8  
+             c' 2  
+             \bar "|"  %{ end measure 8 %} 
+             d' 4  
+             d' 4  
+             e' 4  
+             c' 4  
+             \bar "|"  %{ end measure 9 %} 
+             d' 4  
+             e' 8  
+             f' 8  
+             e' 4  
+             c' 4  
+             \bar "|"  %{ end measure 10 %} 
+             d' 4  
+             e' 8  
+             f' 8  
+             e' 4  
+             d' 4  
+             \bar "|"  %{ end measure 11 %} 
+             c' 4  
+             d' 4  
+             g 2  
+             \bar "|"  %{ end measure 12 %} 
+             e' 4  
+             e' 4  
+             f' 4  
+             g' 4  
+             \bar "|"  %{ end measure 13 %} 
+             g' 4  
+             f' 4  
+             e' 4  
+             d' 4  
+             \bar "|"  %{ end measure 14 %} 
+             c' 4  
+             c' 4  
+             d' 4  
+             e' 4  
+             \bar "|"  %{ end measure 15 %} 
+             d' 4.  
+             c' 8  
+             c' 2  
+             \bar "|."  %{ end measure 16 %} 
+              } 
+            
+ 
+       \new Staff  = xzzwzzbfzacxwbc { \clef "bass" 
+             \key c \major 
+             \time 4/4
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 1 %} 
+             < g,  d  g  > 1   
+             \bar "|"  %{ end measure 2 %} 
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 3 %} 
+             < g,  d  g  > 1   
+             \bar "|"  %{ end measure 4 %} 
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 5 %} 
+             < g,  d  g  > 1   
+             \bar "|"  %{ end measure 6 %} 
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 7 %} 
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 8 %} 
+             < g,  d  g  > 2   
+             < c  e  g  > 2   
+             \bar "|"  %{ end measure 9 %} 
+             < g,  d  g  > 2   
+             < c  e  g  > 2   
+             \bar "|"  %{ end measure 10 %} 
+             < g,  d  g  > 2   
+             < d  f  a  > 2   
+             \bar "|"  %{ end measure 11 %} 
+             < c  e  g  > 2   
+             < g,  b,  d  > 2   
+             \bar "|"  %{ end measure 12 %} 
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 13 %} 
+             < g,  d  g  > 1   
+             \bar "|"  %{ end measure 14 %} 
+             < c  e  g  > 1   
+             \bar "|"  %{ end measure 15 %} 
+             < c  e  g  > 1   
+             \bar "|."  %{ end measure 16 %} 
+              } 
+            
+ 
+        >>
+      
+  } 
+ 
+\paper { }
+\layout {
+  \context {
+    \RemoveEmptyStaves
+    \override VerticalAxisGroup.remove-first = ##t
+  }
+ }
+ 

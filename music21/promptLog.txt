@@ -1,0 +1,7 @@
+8/14
+
+- make sample in music21 folder
+- make a code example for music21 using Jupyter notebooks
+- make code sample for the song ode to joy in the key of code
+- provide an example of showing music notation
+- provide an example of export musicxml
